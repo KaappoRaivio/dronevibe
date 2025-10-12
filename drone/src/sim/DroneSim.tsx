@@ -41,15 +41,20 @@ const Drone = () => {
   });
 
   return (
-    <RigidBody ref={body} colliders="cuboid" restitution={0.3} position={[0, 0.5, 0]}>
-      <mesh castShadow receiveShadow>
-        <boxGeometry args={[1, 0.1, 1]} />
-        <meshStandardMaterial color="#0077ff" />
-      </mesh>
-      {motorOffsets.map((offset, i) => (
-          <primitive key={i} object={new THREE.ArrowHelper(new THREE.Vector3(0, 1, 0), offset, 0.5, 0xff0000)} />
-      ))}
-    </RigidBody>
+      <RigidBody ref={body} colliders="cuboid" restitution={0.3} position={[0, 0.5, 0]}>
+        <mesh castShadow receiveShadow>
+          <boxGeometry args={[1, 0.1, 1]}/>
+          <meshStandardMaterial color="#0077ff"/>
+        </mesh>
+        <mesh position={[0, 0, 0.6]} rotation={[Math.PI /2, 0, 0]}>
+          <coneGeometry args={[0.05, 0.2, 8]}/>
+          <meshStandardMaterial color="red"/>
+        </mesh>
+
+        {motorOffsets.map((offset, i) => (
+            <primitive key={i} object={new THREE.ArrowHelper(new THREE.Vector3(0, 1, 0), offset, 0.5, 0xff0000)}/>
+        ))}
+      </RigidBody>
   );
 };
 
