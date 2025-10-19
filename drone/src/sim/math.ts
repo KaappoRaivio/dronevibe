@@ -89,7 +89,7 @@ export class Vec3 {
 	}
 
 	toString(): string {
-		return `(${this.x} ${this.y} ${this.z}) ^ T`;
+		return `(${this.x.toFixed(2)} ${this.y.toFixed(2)} ${this.z.toFixed(2)}) ^ T`;
 	}
 }
 
@@ -186,7 +186,7 @@ export class Mat3 {
 		const sin = Math.sin(radians);
 		const R = new Mat3( // vittu
 			...[x * x * (1 - cos) + cos, x * y * (1 - cos) - z * sin, x * z * (1 - cos) + y * sin], // mikä
-			...[x * y * (1 - cos) + z * sin, y * y * (1 - cos) + cos, y * z * (1 - cos) + x * sin], //sua
+			...[x * y * (1 - cos) + z * sin, y * y * (1 - cos) + cos, y * z * (1 - cos) - x * sin], //sua
 			...[x * z * (1 - cos) - y * sin, y * z * (1 - cos) + x * sin, z * z * (1 - cos) + cos], // vaivaa
 		);
 
@@ -232,7 +232,7 @@ ${this.z1.toFixed(2)} ${this.z2.toFixed(2)} ${this.z3.toFixed(2)}`;
 		const cosTheta = Math.max(-1, Math.min(1.0, (this.trace() - 1) / 2));
 		const theta = Math.acos(cosTheta);
 
-		if (Math.abs(theta - Math.pi) < 0.1) {
+		if (Math.abs(theta - Math.PI) < 0.1) {
 			console.warn("Gimbal lock");
 		}
 
@@ -241,6 +241,8 @@ ${this.z1.toFixed(2)} ${this.z2.toFixed(2)} ${this.z3.toFixed(2)}`;
 			return new Vec3(S.at(1).at(2), S.at(2).at(0), S.at(0).at(1));
 		} else {
 			const u = new Vec3(this.at(1).at(2) - this.at(2).at(1), this.at(2).at(0) - this.at(0).at(2), this.at(0).at(1) - this.at(1).at(0)).scale(1 / (2 * Math.sin(theta)));
+
+			console.log("Long path?", theta, u.toString());
 
 			return u.scale(theta);
 		}

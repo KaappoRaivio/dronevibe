@@ -18,8 +18,6 @@ const Kd = Mat3.fromDiagonalV(
 		.scale(2 * zeta),
 );
 
-console.log(Kp.toString());
-
 const km = 1;
 const L = Math.sqrt(2) / 2;
 const mixer = new Mat4(
@@ -50,11 +48,12 @@ const outer = (h: number, ht: number, dt: number) => {
 
 const loop = (R: Mat3, Rt: Mat3, h: number, ht: number, dt: number) => {
 	const T = outer(h, ht, dt);
-	// const G = (COPTER_MASS / 4) * 9.81;
-	const G = 0;
+	const G = (COPTER_MASS / 4) * 9.81;
+	// const G = 0;
 
 	const Re = Rt.mul(R.transpose());
 	const e = Re.toAxisAngleVector();
+	console.log(e.toString());
 	const omega = R_previous.mul(R.transpose())
 		.toAxisAngleVector()
 		.scale(1 / dt);

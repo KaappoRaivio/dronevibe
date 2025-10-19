@@ -31,7 +31,6 @@ const Drone = ({ targetPitch, targetRoll }: Props) => {
 			c.current++;
 
 			const attitude_target = Mat3.IDENTITY.rotate(new Vec3(1, 0, 0), (targetPitch / 180) * Math.PI).rotate(new Vec3(0, 0, 1), (targetRoll / 180) * Math.PI);
-			console.log(attitude_target.toString());
 
 			const rot = body.current.rotation();
 			const pos = body.current.translation();
@@ -44,7 +43,6 @@ const Drone = ({ targetPitch, targetRoll }: Props) => {
 
 			motorOffsets.forEach((offset, i) => {
 				// Transform offset to world coordinates
-				const pos = body.current.translation();
 				const worldPoint = new THREE.Vector3(pos.x, pos.y, pos.z).add(offset);
 				// Apply upward force at each motor
 				body.current.applyImpulseAtPoint({ x: offset.x * thrusts[i] * dt, y: thrusts[i] * dt, z: 0 }, worldPoint, false);
@@ -56,7 +54,7 @@ const Drone = ({ targetPitch, targetRoll }: Props) => {
 
 	return (
 		<>
-			<RigidBody ref={body} colliders={false} restitution={0.3} position={[0, 2, 0]} rotation={[0.1, 0.4, -0.2]} angularVelocity={[0.0, 0, -0]}>
+			<RigidBody ref={body} colliders={false} restitution={0.3} position={[0, 3, 0]} rotation={[2, 0.0, 0]} angularVelocity={[0.0, 0, -0]}>
 				<CuboidCollider mass={COPTER_MASS} args={[COPTER_WIDTH, COPTER_HEIGHT, COPTER_LENGTH]} />
 				<mesh castShadow receiveShadow>
 					<boxGeometry args={[COPTER_WIDTH * 2, COPTER_HEIGHT * 2, COPTER_LENGTH * 2]} />
