@@ -17,8 +17,6 @@ const Kd = Mat3.fromDiagonalV(
 		.scale(2 * zeta),
 );
 
-console.log(Kp.toString());
-
 const km = 1;
 const L = Math.sqrt(2) / 2;
 const mixer = new Mat4(
@@ -31,30 +29,26 @@ const mixer_inv = mixer.invert();
 
 const T = 0.0;
 
-const loop = (attitude_current: Mat3, attitude_target: Mat3, dt: number, log: boolean = false) => {
-	const Re = attitude_target.mul(attitude_current.transpose());
+const loop = (R: Mat3, Rt: Mat3, dt: number, log: boolean = false) => {
+	const Re = Rt.mul(R.transpose());
 	const e = Re.toAxisAngleVector();
+	const omega = R_previous.mul(R.transpose())
+		.toAxisAngleVector()
+		.scale(1 / dt);
 
 	const e_p = e;
 	e_i = e_i.add(e.scale(dt));
-	const omega = Re.mul(R_previous.transpose())
-		.toAxisAngleVector()
-		.scale(1 / dt);
+
 	const e_d = omega;
 
-	const tau = e_p.mul(Kp).neg().add(e_d.mul(Kd).neg());
-	// .add(omega.cross(omega.mul(J)))
+	const tau = e_p
+		.mul(Kp)
+		.neg()
+		.add(e_d.mul(Kd).neg())
+		.add(omega.cross(omega.mul(J)));
 	const forces = new Vec4(tau.x, tau.y, tau.z, T).mul(mixer_inv);
 
-	// console.log(forces.toString());
-
-	if (log) {
-		// console.log(Kp.toString());
-		// console.log(Kd.toString());
-		// console.log(tau.toString());
-	}
-
-	R_previous = Re;
+	R_previous = R;
 
 	return forces;
 };
