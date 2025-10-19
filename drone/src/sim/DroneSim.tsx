@@ -34,31 +34,34 @@ const Drone = () => {
 	// const [singleStep, setSingleStep] = useState(false);
 
 	useFrame((_, dt) => {
-		if (!body.current) return;
-		c.current++;
+		if (body.current != null) {
+			c.current++;
 
-		const attitude_target = Mat3.IDENTITY;
+			const attitude_target = Mat3.IDENTITY;
 
-		const rot = body.current.rotation();
+			const rot = body.current.rotation();
 
-		const forces = loop(Mat3.fromQuaternion(rot), attitude_target, dt, c.current % 60 === 0);
-		const thrusts = [forces.x, forces.y, forces.z, forces.w];
-		setThrusts(thrusts);
+			const forces = loop(Mat3.fromQuaternion(rot), attitude_target, dt, c.current % 60 === 0);
+			const thrusts = [forces.x, forces.y, forces.z, forces.w];
+			setThrusts(thrusts);
 
-		// console.log(forces);
+			// console.log(forces);
 
-		motorOffsets.forEach((offset, i) => {
-			// Transform offset to world coordinates
-			const pos = body.current.translation();
-			const worldPoint = new THREE.Vector3(pos.x, pos.y, pos.z).add(offset);
-			// Apply upward force at each motor
-			body.current.applyImpulseAtPoint({ x: 0, y: thrusts[i] * dt, z: 0 }, worldPoint, true);
-		});
+			motorOffsets.forEach((offset, i) => {
+				// Transform offset to world coordinates
+				const pos = body.current.translation();
+				const worldPoint = new THREE.Vector3(pos.x, pos.y, pos.z).add(offset);
+				// Apply upward force at each motor
+				body.current.applyImpulseAtPoint({ x: offset.x * thrusts[i] * dt, y: thrusts[i] * dt, z: 0 }, worldPoint, false);
+			});
+
+			body.current.wakeUp();
+		}
 	});
 
 	return (
 		<>
-			<RigidBody ref={body} colliders={false} restitution={0.3} position={[0, 0.5, 0]} rotation={[0.1, 0, 0.1]} angularVelocity={[0, 1, 0]}>
+			<RigidBody ref={body} colliders={false} restitution={0.3} position={[0, 0.5, 0]} rotation={[0.1, 0, 0.9]} angularVelocity={[0, 1, 0]}>
 				<CuboidCollider mass={COPTER_MASS} args={[COPTER_WIDTH, COPTER_HEIGHT, COPTER_LENGTH]} />
 				<mesh castShadow receiveShadow>
 					<boxGeometry args={[COPTER_WIDTH * 2, COPTER_HEIGHT * 2, COPTER_LENGTH * 2]} />
@@ -69,7 +72,7 @@ const Drone = () => {
 					<meshStandardMaterial color="red" />
 				</mesh>
 				{motorOffsets.map((offset, i) => (
-					<primitive key={i} object={new THREE.ArrowHelper(new THREE.Vector3(0, 1, 0), offset, thrusts[i] * 5, 0xff0000)} />
+					<primitive key={i} object={new THREE.ArrowHelper(new THREE.Vector3(offset.x, 1, 0), offset, thrusts[i] * 5, 0xff0000)} />
 				))}
 			</RigidBody>
 		</>
