@@ -58,7 +58,7 @@ const Drone = () => {
 
 	return (
 		<>
-			<RigidBody ref={body} colliders={false} restitution={0.3} position={[0, 0.5, 0]} rotation={[0.1, 0, 0]}>
+			<RigidBody ref={body} colliders={false} restitution={0.3} position={[0, 0.5, 0]} rotation={[0.1, 0, 0.1]} angularVelocity={[0, 1, 0]}>
 				<CuboidCollider mass={COPTER_MASS} args={[COPTER_WIDTH, COPTER_HEIGHT, COPTER_LENGTH]} />
 				<mesh castShadow receiveShadow>
 					<boxGeometry args={[COPTER_WIDTH * 2, COPTER_HEIGHT * 2, COPTER_LENGTH * 2]} />
