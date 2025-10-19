@@ -40,8 +40,9 @@ const Drone = () => {
 			const attitude_target = Mat3.IDENTITY;
 
 			const rot = body.current.rotation();
+			const pos = body.current.translation();
 
-			const forces = loop(Mat3.fromQuaternion(rot), attitude_target, dt, c.current % 60 === 0);
+			const forces = loop(Mat3.fromQuaternion(rot), attitude_target, pos.y, 3, dt);
 			const thrusts = [forces.x, forces.y, forces.z, forces.w];
 			setThrusts(thrusts);
 
@@ -61,7 +62,7 @@ const Drone = () => {
 
 	return (
 		<>
-			<RigidBody ref={body} colliders={false} restitution={0.3} position={[0, 0.5, 0]} rotation={[0.1, 0, 0.9]} angularVelocity={[0, 1, 0]}>
+			<RigidBody ref={body} colliders={false} restitution={0.3} position={[0, 2, 0]} rotation={[0.1, 0.4, -0.2]} angularVelocity={[0.0, 0, -0]}>
 				<CuboidCollider mass={COPTER_MASS} args={[COPTER_WIDTH, COPTER_HEIGHT, COPTER_LENGTH]} />
 				<mesh castShadow receiveShadow>
 					<boxGeometry args={[COPTER_WIDTH * 2, COPTER_HEIGHT * 2, COPTER_LENGTH * 2]} />
@@ -81,19 +82,18 @@ const Drone = () => {
 
 export default function DroneSim() {
 	return (
-		<Canvas shadows camera={{ position: [3, 3, 3], fov: 50 }}>
+		<Canvas shadows camera={{ position: [10, 10, 10], fov: 50 }}>
 			<ambientLight intensity={0.3} />
 			<directionalLight position={[5, 10, 5]} intensity={1} castShadow />
 
-			<Physics gravity={[0, 0, 0]}>
+			<Physics gravity={[0, -9.81, 0]}>
 				<Drone />
-				{/* Ground plane */}
-				{/*<RigidBody type="fixed">*/}
-				{/*	<mesh receiveShadow rotation={[-Math.PI / 2, 0, 0]}>*/}
-				{/*		<planeGeometry args={[20, 20]} />*/}
-				{/*		<meshStandardMaterial color="#999" />*/}
-				{/*	</mesh>*/}
-				{/*</RigidBody>*/}
+				<RigidBody type="fixed">
+					<mesh receiveShadow rotation={[-Math.PI / 2, 0, 0]}>
+						<planeGeometry args={[20, 20]} />
+						<meshStandardMaterial color="#999" />
+					</mesh>
+				</RigidBody>
 			</Physics>
 			<OrbitControls />
 		</Canvas>

@@ -8,7 +8,7 @@ let e_i = Vec3.ZERO;
 
 const J = Mat3.fromDiagonal((1 / 12) * COPTER_MASS * (Math.pow(COPTER_HEIGHT, 2) + Math.pow(COPTER_LENGTH, 2)), (1 / 12) * COPTER_MASS * (Math.pow(COPTER_WIDTH, 2) + Math.pow(COPTER_LENGTH, 2)), (1 / 12) * COPTER_MASS * (Math.pow(COPTER_HEIGHT, 2) + Math.pow(COPTER_WIDTH, 2)));
 
-const wn = new Vec3(15, 10, 15);
+const wn = new Vec3(15, 5, 15);
 const zeta = 0.7;
 
 const Kp = Mat3.fromDiagonalV(J.toDiagonal().hadamard(wn.hadamard(wn)));
@@ -17,6 +17,8 @@ const Kd = Mat3.fromDiagonalV(
 		.hadamard(wn)
 		.scale(2 * zeta),
 );
+
+console.log(Kp.toString());
 
 const km = 1;
 const L = Math.sqrt(2) / 2;
@@ -28,9 +30,28 @@ const mixer = new Mat4(
 ).scale(1 / 4);
 const mixer_inv = mixer.invert();
 
-const T = 0.0;
+let eh_i = 0;
+let eh_prev = 0;
 
-const loop = (R: Mat3, Rt: Mat3, dt: number, log: boolean = false) => {
+const H_res = 1;
+
+const alt_gains = new Vec3(COPTER_MASS * H_res * H_res, 0.1, H_res * COPTER_MASS * 2 * zeta);
+
+const outer = (h: number, ht: number, dt: number) => {
+	const eh = ht - h;
+
+	eh_i += eh * dt;
+	const eh_d = (eh - eh_prev) / dt;
+
+	eh_prev = eh;
+
+	return alt_gains.dot(new Vec3(eh, eh_i, eh_d));
+};
+
+const loop = (R: Mat3, Rt: Mat3, h: number, ht: number, dt: number) => {
+	const T = outer(h, ht, dt);
+	const G = (COPTER_MASS / 4) * 9.81;
+
 	const Re = Rt.mul(R.transpose());
 	const e = Re.toAxisAngleVector();
 	const omega = R_previous.mul(R.transpose())
@@ -47,7 +68,7 @@ const loop = (R: Mat3, Rt: Mat3, dt: number, log: boolean = false) => {
 		.neg()
 		.add(e_d.mul(Kd).neg())
 		.add(omega.cross(omega.mul(J)));
-	const forces = new Vec4(tau.x, tau.y, tau.z, T).mul(mixer_inv);
+	const forces = new Vec4(tau.x, tau.y, tau.z, T + G).mul(mixer_inv);
 
 	R_previous = R;
 
