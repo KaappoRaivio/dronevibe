@@ -187,7 +187,7 @@ export class Mat3 {
 		const R = new Mat3( // vittu
 			...[x * x * (1 - cos) + cos, x * y * (1 - cos) - z * sin, x * z * (1 - cos) + y * sin], // mikä
 			...[x * y * (1 - cos) + z * sin, y * y * (1 - cos) + cos, y * z * (1 - cos) + x * sin], //sua
-			...[x * z * (1 - cos) + y * sin, y * z * (1 - cos) + x * sin, z * z * (1 - cos) + cos], // vaivaa
+			...[x * z * (1 - cos) - y * sin, y * z * (1 - cos) + x * sin, z * z * (1 - cos) + cos], // vaivaa
 		);
 
 		return this.mul(R);

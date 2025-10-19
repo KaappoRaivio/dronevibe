@@ -31,6 +31,7 @@ const Drone = ({ targetPitch, targetRoll }: Props) => {
 			c.current++;
 
 			const attitude_target = Mat3.IDENTITY.rotate(new Vec3(1, 0, 0), (targetPitch / 180) * Math.PI).rotate(new Vec3(0, 0, 1), (targetRoll / 180) * Math.PI);
+			console.log(attitude_target.toString());
 
 			const rot = body.current.rotation();
 			const pos = body.current.translation();
@@ -82,7 +83,6 @@ export default function DroneSim() {
 
 	useEffect(() => {
 		const onKey = (e) => {
-			console.log(e.key, e);
 			if (e.type === "keydown") {
 				switch (e.key) {
 					case "w":
