@@ -1,4 +1,5 @@
 export class Vec3 {
+  static ZERO = new Vec3(0, 0, 0);
   x: number;
   y: number;
   z: number;
@@ -34,6 +35,10 @@ export class Vec3 {
     const zVector = new Vec3(other.z1, other.z2, other.z3).dot(this);
 
     return new Vec3(xVector, yVector, zVector);
+  }
+
+  hadamard(other: Vec3) {
+    return new Vec3(this.x * other.x, this.y * other.y, this.z * other.z);
   }
 
   neg(): Vec3 {
@@ -133,6 +138,14 @@ export class Mat3 {
       2 * c * d + 2 * a * b,
       a * a - b * b - c * c + d * d,
     );
+  }
+
+  static fromDiagonal(x1: number, y2: number, z3: number) {
+    return new Mat3(x1, 0, 0, 0, y2, 0, 0, 0, z3);
+  }
+
+  static fromDiagonalV(v: Vec3) {
+    return this.fromDiagonal(v.x, v.y, v.z);
   }
 
   constructor(
@@ -283,5 +296,9 @@ ${this.z1.toFixed(2)} ${this.z2.toFixed(2)} ${this.z3.toFixed(2)}`;
 
       return u.scale(theta);
     }
+  }
+
+  toDiagonal(): Vec3 {
+    return new Vec3(this.x1, this.y2, this.z3);
   }
 }
