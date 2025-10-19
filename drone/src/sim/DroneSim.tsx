@@ -1,22 +1,19 @@
-import { useRef, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { Canvas, useFrame } from "@react-three/fiber";
 import { OrbitControls } from "@react-three/drei";
 import { CuboidCollider, Physics, type RapierRigidBody, RigidBody } from "@react-three/rapier";
 import * as THREE from "three";
-import { Mat3 } from "./math.ts";
+import { Mat3, Vec3 } from "./math.ts";
 import loop from "./sim.ts";
 import { COPTER_HEIGHT, COPTER_LENGTH, COPTER_MASS, COPTER_WIDTH } from "../constants.ts";
 
-const Drone = () => {
-	const body = useRef<RapierRigidBody | null>(null);
+type Props = {
+	targetPitch: number;
+	targetRoll: number;
+};
 
-	// Control panel for motor thrusts (in Newtons)
-	// const { m1, m2, m3, m4 } = useControls("Motor thrusts", {
-	// 	m1: { value: 0, min: 0, max: 1, step: 0.01 },
-	// 	m2: { value: 0, min: 0, max: 1, step: 0.01 },
-	// 	m3: { value: 0, min: 0, max: 1, step: 0.01 },
-	// 	m4: { value: 0, min: 0, max: 1, step: 0.01 },
-	// });
+const Drone = ({ targetPitch, targetRoll }: Props) => {
+	const body = useRef<RapierRigidBody | null>(null);
 
 	const motorOffsets = [
 		new THREE.Vector3(-0.5, 0, -0.5), // asd
@@ -25,19 +22,15 @@ const Drone = () => {
 		new THREE.Vector3(0.5, 0, 0.5), // asd
 	];
 
-	// const thrusts = [m1, m2, m3, m4];
-
 	const c = useRef(0);
 
 	const [thrusts, setThrusts] = useState([0, 0, 0, 0]);
-
-	// const [singleStep, setSingleStep] = useState(false);
 
 	useFrame((_, dt) => {
 		if (body.current != null) {
 			c.current++;
 
-			const attitude_target = Mat3.IDENTITY;
+			const attitude_target = Mat3.IDENTITY.rotate(new Vec3(1, 0, 0), (targetPitch / 180) * Math.PI).rotate(new Vec3(0, 0, 1), (targetRoll / 180) * Math.PI);
 
 			const rot = body.current.rotation();
 			const pos = body.current.translation();
@@ -81,21 +74,72 @@ const Drone = () => {
 };
 
 export default function DroneSim() {
-	return (
-		<Canvas shadows camera={{ position: [10, 10, 10], fov: 50 }}>
-			<ambientLight intensity={0.3} />
-			<directionalLight position={[5, 10, 5]} intensity={1} castShadow />
+	const [targetPitch, setTargetPitch] = useState(0);
+	const [targetRoll, setTargetRoll] = useState(0);
+	const [targetYaw, setTargetYaw] = useState(0);
 
-			<Physics gravity={[0, -9.81, 0]}>
-				<Drone />
-				<RigidBody type="fixed">
-					<mesh receiveShadow rotation={[-Math.PI / 2, 0, 0]}>
-						<planeGeometry args={[20, 20]} />
-						<meshStandardMaterial color="#999" />
-					</mesh>
-				</RigidBody>
-			</Physics>
-			<OrbitControls />
-		</Canvas>
+	const ref = useRef<null | HTMLDivElement>(null);
+
+	useEffect(() => {
+		const onKey = (e) => {
+			console.log(e.key, e);
+			if (e.type === "keydown") {
+				switch (e.key) {
+					case "w":
+						setTargetPitch(10);
+						break;
+					case "s":
+						setTargetPitch(-10);
+						break;
+					case "a":
+						setTargetRoll(10);
+						break;
+					case "d":
+						setTargetRoll(-10);
+						break;
+				}
+			} else {
+				switch (e.key) {
+					case "w":
+						setTargetPitch(0);
+						break;
+					case "s":
+						setTargetPitch(0);
+						break;
+					case "a":
+						setTargetRoll(0);
+						break;
+					case "d":
+						setTargetRoll(0);
+						break;
+				}
+			}
+		};
+		document.addEventListener("keydown", onKey);
+		document.addEventListener("keyup", onKey);
+		return () => {
+			document.removeEventListener("keydown", onKey);
+			document.removeEventListener("keyupddf", onKey);
+		};
+	}, []);
+
+	return (
+		<div ref={ref}>
+			<Canvas shadows camera={{ position: [10, 10, 10], fov: 50 }}>
+				<ambientLight intensity={0.3} />
+				<directionalLight position={[5, 10, 5]} intensity={1} castShadow />
+
+				<Physics gravity={[0, -9.81, 0]}>
+					<Drone targetPitch={targetPitch} targetRoll={targetRoll} />
+					<RigidBody type="fixed">
+						<mesh receiveShadow rotation={[-Math.PI / 2, 0, 0]}>
+							<planeGeometry args={[20, 20]} />
+							<meshStandardMaterial color="#999" />
+						</mesh>
+					</RigidBody>
+				</Physics>
+				<OrbitControls />
+			</Canvas>
+		</div>
 	);
 }

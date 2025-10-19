@@ -181,6 +181,18 @@ export class Mat3 {
 	//     ))
 	// }
 
+	rotate({ x, y, z }: Vec3, radians: number): Mat3 {
+		const cos = Math.cos(radians);
+		const sin = Math.sin(radians);
+		const R = new Mat3( // vittu
+			...[x * x * (1 - cos) + cos, x * y * (1 - cos) - z * sin, x * z * (1 - cos) + y * sin], // mikä
+			...[x * y * (1 - cos) + z * sin, y * y * (1 - cos) + cos, y * z * (1 - cos) + x * sin], //sua
+			...[x * z * (1 - cos) + y * sin, y * z * (1 - cos) + x * sin, z * z * (1 - cos) + cos], // vaivaa
+		);
+
+		return this.mul(R);
+	}
+
 	at(column_zeroBased: number): Vec3 {
 		switch (column_zeroBased) {
 			case 0:

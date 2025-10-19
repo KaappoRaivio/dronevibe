@@ -50,7 +50,8 @@ const outer = (h: number, ht: number, dt: number) => {
 
 const loop = (R: Mat3, Rt: Mat3, h: number, ht: number, dt: number) => {
 	const T = outer(h, ht, dt);
-	const G = (COPTER_MASS / 4) * 9.81;
+	// const G = (COPTER_MASS / 4) * 9.81;
+	const G = 0;
 
 	const Re = Rt.mul(R.transpose());
 	const e = Re.toAxisAngleVector();
