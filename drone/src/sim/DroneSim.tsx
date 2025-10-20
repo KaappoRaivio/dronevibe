@@ -10,9 +10,10 @@ import { COPTER_HEIGHT, COPTER_LENGTH, COPTER_MASS, COPTER_WIDTH } from "../cons
 type Props = {
 	targetPitch: number;
 	targetRoll: number;
+	targetYaw: number;
 };
 
-const Drone = ({ targetPitch, targetRoll }: Props) => {
+const Drone = ({ targetPitch, targetRoll, targetYaw }: Props) => {
 	const body = useRef<RapierRigidBody | null>(null);
 
 	const motorOffsets = [
@@ -30,12 +31,15 @@ const Drone = ({ targetPitch, targetRoll }: Props) => {
 		if (body.current != null) {
 			c.current++;
 
-			const attitude_target = Mat3.IDENTITY.rotate(new Vec3(1, 0, 0), (targetPitch / 180) * Math.PI).rotate(new Vec3(0, 0, 1), (targetRoll / 180) * Math.PI);
+			const attitude_target = Mat3.IDENTITY.rotate(new Vec3(0, 1, 0), (targetYaw / 180) * Math.PI)
+				.rotate(new Vec3(1, 0, 0), (targetPitch / 180) * Math.PI)
+				.rotate(new Vec3(0, 0, 1), (targetRoll / 180) * Math.PI);
 
 			const rot = body.current.rotation();
 			const pos = body.current.translation();
 
-			const forces = loop(Mat3.fromQuaternion(rot), attitude_target, pos.y, 3, dt);
+			let attitude_current = Mat3.fromQuaternion(rot);
+			const forces = loop(attitude_current, attitude_target, pos.y, 3, dt);
 			const thrusts = [forces.x, forces.y, forces.z, forces.w];
 			setThrusts(thrusts);
 
@@ -44,8 +48,12 @@ const Drone = ({ targetPitch, targetRoll }: Props) => {
 			motorOffsets.forEach((offset, i) => {
 				// Transform offset to world coordinates
 				const worldPoint = new THREE.Vector3(pos.x, pos.y, pos.z).add(offset);
+
+				const up = new Vec3(offset.x * 0.1, 1, 0).scale(thrusts[i]).scale(dt);
+				const rotated = up.mul(attitude_current);
+
 				// Apply upward force at each motor
-				body.current.applyImpulseAtPoint({ x: offset.x * thrusts[i] * dt, y: thrusts[i] * dt, z: 0 }, worldPoint, false);
+				body.current.applyImpulseAtPoint(rotated, worldPoint, false);
 			});
 
 			body.current.wakeUp();
@@ -54,7 +62,7 @@ const Drone = ({ targetPitch, targetRoll }: Props) => {
 
 	return (
 		<>
-			<RigidBody ref={body} colliders={false} restitution={0.3} position={[0, 3, 0]} rotation={[2, 0.0, 0]} angularVelocity={[0.0, 0, -0]}>
+			<RigidBody ref={body} colliders={false} restitution={0.3} position={[0, 3, 0]} rotation={[0, 0.0, 0]} angularVelocity={[0.0, 0, -0]}>
 				<CuboidCollider mass={COPTER_MASS} args={[COPTER_WIDTH, COPTER_HEIGHT, COPTER_LENGTH]} />
 				<mesh castShadow receiveShadow>
 					<boxGeometry args={[COPTER_WIDTH * 2, COPTER_HEIGHT * 2, COPTER_LENGTH * 2]} />
@@ -76,6 +84,9 @@ export default function DroneSim() {
 	const [targetPitch, setTargetPitch] = useState(0);
 	const [targetRoll, setTargetRoll] = useState(0);
 	const [targetYaw, setTargetYaw] = useState(0);
+	useEffect(() => {
+		console.log(targetYaw);
+	}, [targetYaw]);
 
 	const ref = useRef<null | HTMLDivElement>(null);
 
@@ -84,16 +95,24 @@ export default function DroneSim() {
 			if (e.type === "keydown") {
 				switch (e.key) {
 					case "w":
-						setTargetPitch(10);
+						setTargetPitch(20);
 						break;
 					case "s":
-						setTargetPitch(-10);
+						setTargetPitch(-20);
 						break;
 					case "a":
-						setTargetRoll(10);
+						setTargetRoll(-20);
 						break;
 					case "d":
-						setTargetRoll(-10);
+						setTargetRoll(20);
+						break;
+					case "e":
+						setTargetYaw((x) => x - 1);
+						break;
+					case "q":
+						setTargetYaw((x) => x + 1);
+						break;
+					default:
 						break;
 				}
 			} else {
@@ -128,7 +147,7 @@ export default function DroneSim() {
 				<directionalLight position={[5, 10, 5]} intensity={1} castShadow />
 
 				<Physics gravity={[0, -9.81, 0]}>
-					<Drone targetPitch={targetPitch} targetRoll={targetRoll} />
+					<Drone targetPitch={targetPitch} targetRoll={targetRoll} targetYaw={targetYaw} />
 					<RigidBody type="fixed">
 						<mesh receiveShadow rotation={[-Math.PI / 2, 0, 0]}>
 							<planeGeometry args={[20, 20]} />

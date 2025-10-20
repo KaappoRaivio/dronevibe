@@ -233,16 +233,27 @@ ${this.z1.toFixed(2)} ${this.z2.toFixed(2)} ${this.z3.toFixed(2)}`;
 		const theta = Math.acos(cosTheta);
 
 		if (Math.abs(theta - Math.PI) < 0.1) {
-			console.warn("Gimbal lock");
-		}
+			// Near 180 degrees
+			const xx = (this.at(0).at(0) + 1) / 2;
+			const yy = (this.at(1).at(1) + 1) / 2;
+			const zz = (this.at(2).at(2) + 1) / 2;
 
-		if (Math.abs(theta) < 0.1) {
+			let x = Math.sqrt(Math.max(0, xx));
+			let y = Math.sqrt(Math.max(0, yy));
+			let z = Math.sqrt(Math.max(0, zz));
+
+			// Fix signs
+			if (this.at(2).at(1) - this.at(1).at(2) < 0) x = -x;
+			if (this.at(0).at(2) - this.at(2).at(0) < 0) y = -y;
+			if (this.at(1).at(0) - this.at(0).at(1) < 0) z = -z;
+
+			const axis = new Vec3(x, y, z).normalize();
+			return axis.scale(theta);
+		} else if (Math.abs(theta) < 0.1) {
 			const S = this.sub(this.transpose()).scale(0.5);
 			return new Vec3(S.at(1).at(2), S.at(2).at(0), S.at(0).at(1));
 		} else {
 			const u = new Vec3(this.at(1).at(2) - this.at(2).at(1), this.at(2).at(0) - this.at(0).at(2), this.at(0).at(1) - this.at(1).at(0)).scale(1 / (2 * Math.sin(theta)));
-
-			console.log("Long path?", theta, u.toString());
 
 			return u.scale(theta);
 		}

@@ -53,7 +53,6 @@ const loop = (R: Mat3, Rt: Mat3, h: number, ht: number, dt: number) => {
 
 	const Re = Rt.mul(R.transpose());
 	const e = Re.toAxisAngleVector();
-	console.log(e.toString());
 	const omega = R_previous.mul(R.transpose())
 		.toAxisAngleVector()
 		.scale(1 / dt);
