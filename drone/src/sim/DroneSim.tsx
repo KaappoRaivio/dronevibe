@@ -38,7 +38,7 @@ const Drone = ({ targetPitch, targetRoll, targetYaw }: Props) => {
 			const rot = body.current.rotation();
 			const pos = body.current.translation();
 
-			let attitude_current = Mat3.fromQuaternion(rot);
+			const attitude_current = Mat3.fromQuaternion(rot);
 			const forces = loop(attitude_current, attitude_target, pos.y, 3, dt);
 			const thrusts = [forces.x, forces.y, forces.z, forces.w];
 			setThrusts(thrusts);
@@ -53,7 +53,7 @@ const Drone = ({ targetPitch, targetRoll, targetYaw }: Props) => {
 				const rotated = up.mul(attitude_current);
 
 				// Apply upward force at each motor
-				body.current.applyImpulseAtPoint(rotated, worldPoint, false);
+				body.current?.applyImpulseAtPoint(rotated, worldPoint, false);
 			});
 
 			body.current.wakeUp();
@@ -91,7 +91,7 @@ export default function DroneSim() {
 	const ref = useRef<null | HTMLDivElement>(null);
 
 	useEffect(() => {
-		const onKey = (e) => {
+		const onKey = (e: KeyboardEvent) => {
 			if (e.type === "keydown") {
 				switch (e.key) {
 					case "w":
@@ -136,7 +136,7 @@ export default function DroneSim() {
 		document.addEventListener("keyup", onKey);
 		return () => {
 			document.removeEventListener("keydown", onKey);
-			document.removeEventListener("keyupddf", onKey);
+			document.removeEventListener("keyup", onKey);
 		};
 	}, []);
 
